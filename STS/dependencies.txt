@@ -1,0 +1,12 @@
+# The official ROS package for bridging OpenCV and ROS Image messages
+    ros-jazzy-cv-bridge \
+    
+# Use standard apt package for OpenCV on ROS's Ubuntu base
+numpy
+RPI.gpio
+gpiod
+
+
+run these just after docker exec -it 
+unset RMW_IMPLEMENTATION
+ros2 daemon stop
