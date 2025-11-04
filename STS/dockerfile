@@ -1,0 +1,36 @@
+# Use a ROS 2 base image suitable for the RPi's ARM64 architecture
+# 'ros-base' is lighter than 'desktop-full' and sufficient for nodes.
+# We'll use Jazzy as it's the stable LTS for 64-bit Ubuntu/ROS 2.
+FROM ros:jazzy-ros-base
+
+# Set up environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+
+# Install necessary Python tools and ROS-Python bridge packages
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-dev \
+    
+    python3-opencv \
+    # Clean up apt lists to minimize image size
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Install Python packages that are not provided via apt (like rpi.gpio wrapper)
+# Note: Use standard 'pip' to install libraries like RPi.GPIO or gpiod
+
+   
+
+
+# Set the working directory to the ROS 2 workspace
+WORKDIR /home/user/ws
+
+# Switch to the non-root user
+USER root
+
+# Source the ROS environment setup automatically on container start
+RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
+
+
+CMD ["bash"]
