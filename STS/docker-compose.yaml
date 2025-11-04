@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  ros2_controller:
+    container_name: ros2_controller_pi
+    # Use the local Dockerfile for the build
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    
+    # Run in privileged mode for easy hardware access (simplest, but less secure)
+    # Alternatively, list devices explicitly (see below)
+    privileged: true
+
+    # Explicitly map devices for hardware access (safer alternative to privileged: true)
+    devices:
+      # 📸 Webcam Access (Varies based on OS, /dev/video0 is standard USB camera)
+      - "/dev/video0:/dev/video0"
+      
+      # 📌 GPIO Access (Recommended for direct RPi.GPIO, I2C, SPI)
+      - "/dev/gpiomem:/dev/gpiomem" # For RPi.GPIO non-root access
+      - "/dev/i2c-1:/dev/i2c-1"     # For I2C sensors (LiDAR/IMU)
+      # You can add the LiDAR serial port here, e.g.:
+      # - "/dev/ttyUSB0:/dev/ttyUSB0" 
+      
+    # Use your defined non-root user
+    user: root
+
+    # Keep container running and interactive
+    stdin_open: true 
+    tty: true
+
+    volumes:
+      # Mount 1: ROS 2 workspace for building and sourcing
+      - ./ros2_ws:/home/user/ws
+      # Mount 2: Source folder for your vision/control package
+      # NOTE: Ensure 'color_detector_pkg' is the name of your ROS package folder
+      - ./color_detector_pkg:/home/user/ws/src/color_detector_pkg
+      # GUI Forwarding (Needed for cv2.imshow to display windows on the RPi desktop)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      
+    environment:
+      # Standard display variable for X server forwarding
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      # Recommended optimization for ROS 2 on RPi
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      # Set up the domain ID for network separation (optional)
+      - ROS_DOMAIN_ID=10 
+
+    network_mode: "host"
